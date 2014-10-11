@@ -23,5 +23,3 @@ install:
 
 script:
     - nosetests --exe -v tifffile
-    - pip install $WHEELHOUSE skimage
-    - nosetests --exe -v tifffile
