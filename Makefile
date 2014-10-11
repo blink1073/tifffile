@@ -2,6 +2,7 @@
 .PHONY: all clean test release
 
 export TEST_ARGS=--exe -v
+export NAME=tifffile
 export VERSION=`python -c "import $(NAME); print($(NAME).__version__)"`
 
 all: clean
@@ -18,9 +19,7 @@ test: clean
 	make clean
 
 release: test
-	pip install wheel
 	python setup.py register
-	python setup.py bdist_wheel upload
 	python setup.py sdist --formats=gztar,zip upload
 	git tag v$(VERSION)
 	git push origin --all
