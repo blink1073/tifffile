@@ -1,0 +1,27 @@
+# vim ft=yaml
+
+# After changing this file, check it on:
+#   http://yaml-online-parser.appspot.com/
+
+language: python
+
+python:
+- 2.6
+- 2.7
+- 3.2
+- 3.3
+- 3.4
+
+before_install:
+    - export WHEELHOUSE="--no-index --find-links=http://wheels.scikit-image.org/"
+    - pip uninstall -y numpy
+    - pip install $WHEELHOUSE numpy
+
+install:
+    - python setup.py build_ext --inplace
+    - python setup.py install
+
+script:
+    - nosetests --exe -v tifffile
+    - pip install $WHEELHOUSE scikit-image
+    - nosetests --exe -v tifffile
