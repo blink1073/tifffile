@@ -43,8 +43,6 @@ Requirements
 * `CPython 2.7 or 3.4 <http://www.python.org>`_
 * `Numpy 1.8.2 <http://www.numpy.org>`_
 * `Matplotlib 1.4 <http://www.matplotlib.org>`_ (optional for plotting)
-* `Tifffile.c 2013.11.05 <http://www.lfd.uci.edu/~gohlke/>`_
-  (recommended for faster decoding of PackBits and LZW encoded strings)
 
 Notes
 -----
