@@ -93,7 +93,6 @@ References
 Examples
 --------
 
-```python
 >>> data = numpy.random.rand(5, 301, 219)
 >>> imsave('temp.tif', data)
 
@@ -106,4 +105,4 @@ Examples
 ...         for tag in page.tags.values():
 ...             t = tag.name, tag.value
 ...         image = page.asarray()
-```
+
