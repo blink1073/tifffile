@@ -1,11 +1,12 @@
 # Note: This is meant for tifffile developer use only
-.PHONY: all clean test release
+.PHONY: all clean test release update
 
 export TEST_ARGS=--exe -v
 export NAME=tifffile
 export VERSION=`python -c "import $(NAME); print($(NAME).__version__)"`
 
 all: clean
+	python setup.py build_ext -i
 	python setup.py install
 
 clean:
@@ -24,3 +25,9 @@ release: test
 	git tag v$(VERSION)
 	git push origin --all
 	git push origin --tags
+
+update: clean
+	export SITE=http://www.lfd.uci.edu/~gohlke/code/
+	wget $SITE/tifffile.py -o tifffile/tifffile.py
+	wget $SITE/tifffile.c -o tifffile/tifffile.c
+	make test
