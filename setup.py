@@ -6,9 +6,12 @@ import numpy
 import re
 
 
-readme = open('README.rst').read()
+with open('README.rst') as f:
+    readme = f.read()
 
-text = open('tifffile/__init__.py').read()
+with open('tifffile/__init__.py') as f:
+    text = f.read()
+
 version = re.search("__version__ = '(.*?)'", text).groups()[0]
 
 
