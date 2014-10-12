@@ -3,13 +3,18 @@
 
 from distutils.core import setup, Extension
 import numpy
+import re
+
 
 readme = open('README.rst').read()
+
+text = open('tifffile/__init__.py').read()
+version = re.search("__version__ = '(.*?)'", text).groups()[0]
 
 
 setup(
     name='tifffile',
-    version='0.1.0',
+    version=version,
     description='Read and write image data from and to TIFF files.',
     long_description=readme,
     author='Steven Silvester',
