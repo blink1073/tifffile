@@ -28,6 +28,6 @@ release: test
 
 update: clean
 	export SITE=http://www.lfd.uci.edu/~gohlke/code/
-	wget $SITE/tifffile.py -o tifffile/tifffile.py
-	wget $SITE/tifffile.c -o tifffile/tifffile.c
+	wget $SITE/tifffile.py -o tifffile.py
+	wget $SITE/tifffile.c -o tifffile.c
 	make test
