@@ -23,6 +23,7 @@ setup(
     author='Steven Silvester',
     author_email='steven.silvester@ieee.org',
     url='https://github.com/blink1073/tifffile',
+    py_modules=['tifffile'],
     include_package_data=True,
     ext_modules=[Extension('_tifffile',
                            ['tifffile.c'],
