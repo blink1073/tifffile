@@ -9,7 +9,7 @@ import re
 with open('README.rst') as f:
     readme = f.read()
 
-with open('tifffile/__init__.py') as f:
+with open('tifffile.py') as f:
     text = f.read()
 
 version = re.search("__version__ = '(.*?)'", text).groups()[0]
@@ -23,11 +23,9 @@ setup(
     author='Steven Silvester',
     author_email='steven.silvester@ieee.org',
     url='https://github.com/blink1073/tifffile',
-    packages=['tifffile'],
-    package_dir={'tifffile': 'tifffile'},
     include_package_data=True,
-    ext_modules=[Extension('tifffile/_tifffile',
-                           ['tifffile/tifffile.c'],
+    ext_modules=[Extension('_tifffile',
+                           ['tifffile.c'],
                            include_dirs=[numpy.get_include()])],
     requires=['numpy (>=1.8.2)'],
     license="BSD",
