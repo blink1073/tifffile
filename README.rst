@@ -104,3 +104,11 @@ Examples
 ...             t = tag.name, tag.value
 ...         image = page.asarray()
 
+
+Known build errors
+------------------
+On Windows, the error `Error:unable to find vcvarsall.bat` means that distutils is not correctly configured to use the C compiler. Modify (or create, if not existing) the configuration file distutils.cfg (located for example at C:\Python27\Lib\distutils\distutils.cfg) to contain::
+
+  [build]
+  compiler=mingw32
+
