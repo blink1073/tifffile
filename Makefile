@@ -1,7 +1,7 @@
 # Note: This is meant for tifffile developer use only
 .PHONY: all clean test release update
 
-export TEST_ARGS=--exe -v
+export TEST_ARGS=--exe -v --with-doctest
 export NAME=tifffile
 export VERSION=`python -c "import $(NAME); print($(NAME).__version__)"`
 

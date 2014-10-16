@@ -22,4 +22,4 @@ install:
     - python setup.py install
 
 script:
-    - nosetests --exe -v tifffile
+    - nosetests --exe -v --with-doctest tifffile
