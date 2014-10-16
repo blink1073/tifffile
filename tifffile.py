@@ -663,12 +663,12 @@ def imread(files, **kwargs):
 
     Examples
     --------
-    >>> im = imread('test.tif', key=0)
+    >>> im = imread('temp.tif', key=0)
     >>> im.shape
-    (256, 256, 4)
-    >>> ims = imread(['test.tif', 'test.tif'])
+    (3, 301, 219)
+    >>> ims = imread(['temp.tif', 'temp.tif'])
     >>> ims.shape
-    (2, 256, 256, 4)
+    (2, 10, 3, 301, 219)
 
     """
     kwargs_file = {}
@@ -733,10 +733,10 @@ class TiffFile(object):
 
     Examples
     --------
-    >>> with TiffFile('test.tif') as tif:
+    >>> with TiffFile('temp.tif') as tif:
     ...     data = tif.asarray()
     ...     data.shape
-    (256, 256, 4)
+    (5, 301, 219)
 
     """
     def __init__(self, arg, name=None, offset=None, size=None,
@@ -2215,11 +2215,11 @@ class TiffSequence(object):
 
     Examples
     --------
-    >>> tifs = TiffSequence("test.oif.files/*.tif")
-    >>> tifs.shape, tifs.axes
+    >>> tifs = TiffSequence("test.oif.files/*.tif")  # doctest: +SKIP
+    >>> tifs.shape, tifs.axes  # doctest: +SKIP
     ((2, 100), 'CT')
-    >>> data = tifs.asarray()
-    >>> data.shape
+    >>> data = tifs.asarray()  # doctest: +SKIP
+    >>> data.shape  # doctest: +SKIP
     (2, 100, 256, 256)
 
     """
