@@ -103,6 +103,13 @@ typedef _W64 unsigned int  uintptr_t;
 /* non MS compilers */
 #include <stdint.h>
 #include <limits.h>
+#ifndef SSIZE_MAX
+#ifdef _WIN64
+#define SSIZE_MAX (9223372036854775808L)
+#else
+#define SSIZE_MAX (2147483648)
+#endif
+#endif
 #endif
 
 #define SWAP2BYTES(x) \
