@@ -153,7 +153,7 @@ import numpy
 
 import _tifffile
 
-__version__ = '0.3.3'
+__version__ = '0.4'
 __docformat__ = 'restructuredtext en'
 __all__ = ('imsave', 'imread', 'imshow', 'TiffFile', 'TiffWriter',
            'TiffSequence')

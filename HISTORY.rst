@@ -3,6 +3,12 @@
 History
 -------
 
+0.4.0 (2014-12-13)
+---------------------
+* Do not require importlib to use tifffile.c
+* Fix SSIZE_MAX bug for mingw
+
+
 0.3.0 (2014-10-12)
 ---------------------
 * Install as a top-level python and compiled file.
