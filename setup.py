@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from distutils.core import setup, Extension
+from setuptools import setup, find_packages
+from distutils.core import Extension
+
 import numpy
 import re
 
@@ -24,12 +26,13 @@ setup(
     author_email='steven.silvester@ieee.org',
     url='https://github.com/blink1073/tifffile',
     include_package_data=True,
-    ext_modules=[Extension('_tifffile',
+    ext_modules=[Extension('tifffile._tifffile',
                            ['tifffile/_tifffile.c'],
                            include_dirs=[numpy.get_include()])],
-    requires=['numpy (>=1.8.2)'],
+    requires=['numpy (>=1.8.2)', 'setuptools'],
     license="BSD",
     zip_safe=False,
+    packages=find_packages(),
     keywords='tifffile',
     classifiers=[
         'Development Status :: 4 - Beta',
