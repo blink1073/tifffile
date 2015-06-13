@@ -1,9 +1,10 @@
 # Note: This is meant for tifffile developer use only
 .PHONY: all clean test release update
 
-export TEST_ARGS=--exe -v --with-doctest
+export TEST_ARGS=--exe -v
 export NAME=tifffile
 export VERSION=`python -c "import $(NAME); print($(NAME).__version__)"`
+export SITE=http://www.lfd.uci.edu/~gohlke/code/
 
 all: clean
 	python setup.py build_ext -i
@@ -27,7 +28,9 @@ release: test
 	git push origin --tags
 
 update: clean
-	export SITE=http://www.lfd.uci.edu/~gohlke/code/
-	wget $SITE/tifffile.py -o tifffile.py
-	wget $SITE/tifffile.c -o tifffile.c
-	make test
+	rm tifffile/tifffile.py tifffile/_tifffile.c; true
+	wget $(SITE)/tifffile.py
+	wget $(SITE)/tifffile.c
+	patch tifffile.py -i replace_by.patch -o tifffile/tifffile.py
+	mv tifffile.c tifffile/_tifffile.c
+	rm tifffile.py index.html*; true
