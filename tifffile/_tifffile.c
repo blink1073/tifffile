@@ -1,5 +1,3 @@
-
-
 /* tifffile.c
 
 A Python C extension module for decoding PackBits and LZW encoded TIFF data.
@@ -12,7 +10,13 @@ Refer to the tifffile.py module for documentation and tests.
 :Organization:
   Laboratory for Fluorescence Dynamics, University of California, Irvine
 
-:Version: 2013.11.05
+:Version: 2014.10.10
+
+Requirements
+------------
+* `CPython 2.7 or 3.4 <http://www.python.org>`_
+* `Numpy 1.8 <http://www.numpy.org>`_
+* A Python distutils compatible C compiler  (build)
 
 Install
 -------
@@ -58,7 +62,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#define _VERSION_ "2013.11.05"
+#define _VERSION_ "2014.10.10"
 
 #define WIN32_LEAN_AND_MEAN
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -103,13 +107,6 @@ typedef _W64 unsigned int  uintptr_t;
 /* non MS compilers */
 #include <stdint.h>
 #include <limits.h>
-#ifndef SSIZE_MAX
-#ifdef _WIN64
-#define SSIZE_MAX (9223372036854775808L)
-#else
-#define SSIZE_MAX (2147483648)
-#endif
-#endif
 #endif
 
 #define SWAP2BYTES(x) \
@@ -932,38 +929,4 @@ init_tifffile(void)
     PyObject *module;
 
     char *doc = (char *)PyMem_Malloc(sizeof(module_doc) + sizeof(_VERSION_));
-    PyOS_snprintf(doc, sizeof(doc), module_doc, _VERSION_);
-
-#if PY_MAJOR_VERSION >= 3
-    moduledef.m_doc = doc;
-    module = PyModule_Create(&moduledef);
-#else
-    module = Py_InitModule3("_tifffile", module_methods, doc);
-#endif
-
-    PyMem_Free(doc);
-
-    if (module == NULL)
-        INITERROR;
-
-    if (_import_array() < 0) {
-        Py_DECREF(module);
-        INITERROR;
-    }
-
-    {
-#if PY_MAJOR_VERSION < 3
-    PyObject *s = PyString_FromString(_VERSION_);
-#else
-    PyObject *s = PyUnicode_FromString(_VERSION_);
-#endif
-    PyObject *dict = PyModule_GetDict(module);
-    PyDict_SetItemString(dict, "__version__", s);
-    Py_DECREF(s);
-    }
-
-#if PY_MAJOR_VERSION >= 3
-    return module;
-#endif
-}
-
+    PyOS_snprintf(doc, sizeof(module_doc) + s
