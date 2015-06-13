@@ -929,4 +929,38 @@ init_tifffile(void)
     PyObject *module;
 
     char *doc = (char *)PyMem_Malloc(sizeof(module_doc) + sizeof(_VERSION_));
-    PyOS_snprintf(doc, sizeof(module_doc) + s
+    PyOS_snprintf(doc, sizeof(module_doc) + sizeof(_VERSION_),
+                  module_doc, _VERSION_);
+
+#if PY_MAJOR_VERSION >= 3
+    moduledef.m_doc = doc;
+    module = PyModule_Create(&moduledef);
+#else
+    module = Py_InitModule3("_tifffile", module_methods, doc);
+#endif
+
+    PyMem_Free(doc);
+
+    if (module == NULL)
+        INITERROR;
+
+    if (_import_array() < 0) {
+        Py_DECREF(module);
+        INITERROR;
+    }
+
+    {
+#if PY_MAJOR_VERSION < 3
+    PyObject *s = PyString_FromString(_VERSION_);
+#else
+    PyObject *s = PyUnicode_FromString(_VERSION_);
+#endif
+    PyObject *dict = PyModule_GetDict(module);
+    PyDict_SetItemString(dict, "__version__", s);
+    Py_DECREF(s);
+    }
+
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
+}
