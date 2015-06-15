@@ -33,6 +33,12 @@ def test_imread_uint16_big_endian():
     assert_array_almost_equal(img, expected)
 
 
+def test_extension():
+    from tifffile.tifffile import decodelzw
+    import types
+    assert isinstance(decodelzw, types.BuiltinFunctionType)
+
+
 class TestSave:
 
     def roundtrip(self, dtype, x):

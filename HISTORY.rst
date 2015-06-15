@@ -3,6 +3,12 @@
 History
 -------
 
+
+0.6.0 (2015-06-14)
+---------------------
+* Make tifffile a package, fix handling of _tifffile.c files
+
+
 0.4.0 (2014-12-13)
 ---------------------
 * Do not require importlib to use tifffile.c

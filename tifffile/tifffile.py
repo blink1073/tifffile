@@ -150,7 +150,7 @@ from xml.etree import cElementTree as etree
 import numpy
 
 try:
-    import _tifffile
+    from . import _tifffile
 except ImportError:
     warnings.warn(
         "failed to import the optional _tifffile C extension module.\n"

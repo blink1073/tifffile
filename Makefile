@@ -31,6 +31,6 @@ update: clean
 	rm tifffile/tifffile.py tifffile/_tifffile.c; true
 	wget $(SITE)/tifffile.py
 	wget $(SITE)/tifffile.c
-	patch tifffile.py -i replace_by.patch -o tifffile/tifffile.py
+	patch -R tifffile.py -i replace_by.patch -o tifffile/tifffile.py
 	mv tifffile.c tifffile/_tifffile.c
-	rm tifffile.py index.html*; true
+	rm tifffile.py

@@ -1,49 +1,53 @@
-3088,3093c3088,3111
-<     """Try replace decorated function by module.function."""
-<     try:
-<         from importlib import import_module
-<     except ImportError:
-<         warnings.warn('could not import module importlib')
-<         return lambda func: func
+153c153
+<     from . import _tifffile
 ---
->     """Try replace decorated function by module.function.
-> 
->     This is used to replace local functions with functions from another
->     (usually compiled) module, if available.
-> 
->     Parameters
->     ----------
->     module_function : str
->         Module and function path string (e.g. numpy.ones)
->     package : str, optional
->         The parent package of the module
->     warn : bool, optional
->         Whether to warn when wrapping fails
-> 
->     Returns
->     -------
->     func : function
->         Wrapped function, hopefully calling a function in another module.
-> 
->     Example
->     -------
->     >>> @_replace_by('_tifffile.decodepackbits')
->     ... def decodepackbits(encoded):
->     ...     raise NotImplementedError
-3094a3113
->     """
-3097,3099c3116,3118
-<             module, function = module_function.split('.')
-<             if not package:
-<                 module = import_module(module)
----
->             modname, function = module_function.split('.')
->             if package is None:
->                 full_name = modname
-3101c3120,3121
-<                 module = import_module('.' + module, package=package)
----
->                 full_name = package + '.' + modname
->             module = __import__(full_name, fromlist=[modname])
-4845d4864
+>     import _tifffile
+3088,3111c3088,3093
+<     """Try replace decorated function by module.function.
 < 
+<     This is used to replace local functions with functions from another
+<     (usually compiled) module, if available.
+< 
+<     Parameters
+<     ----------
+<     module_function : str
+<         Module and function path string (e.g. numpy.ones)
+<     package : str, optional
+<         The parent package of the module
+<     warn : bool, optional
+<         Whether to warn when wrapping fails
+< 
+<     Returns
+<     -------
+<     func : function
+<         Wrapped function, hopefully calling a function in another module.
+< 
+<     Example
+<     -------
+<     >>> @_replace_by('_tifffile.decodepackbits')
+<     ... def decodepackbits(encoded):
+<     ...     raise NotImplementedError
+---
+>     """Try replace decorated function by module.function."""
+>     try:
+>         from importlib import import_module
+>     except ImportError:
+>         warnings.warn('could not import module importlib')
+>         return lambda func: func
+3113d3094
+<     """
+3116,3118c3097,3099
+<             modname, function = module_function.split('.')
+<             if package is None:
+<                 full_name = modname
+---
+>             module, function = module_function.split('.')
+>             if not package:
+>                 module = import_module(module)
+3120,3121c3101
+<                 full_name = package + '.' + modname
+<             module = __import__(full_name, fromlist=[modname])
+---
+>                 module = import_module('.' + module, package=package)
+4864a4845
+> 
