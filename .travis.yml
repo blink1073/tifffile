@@ -17,9 +17,5 @@ before_install:
     - pip uninstall -y numpy
     - pip install $WHEELHOUSE numpy
 
-install:
-    - python setup.py build_ext --inplace
-    - python setup.py install
-
 script:
     - make test
