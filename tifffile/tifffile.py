@@ -3122,6 +3122,7 @@ def _replace_by(module_function, package=None, warn=False):
             func, oldfunc = getattr(module, function), func
             globals()['__old_' + func.__name__] = oldfunc
         except Exception:
+            raise
             if warn:
                 warnings.warn("failed to import %s" % module_function)
         return func
