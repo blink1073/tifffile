@@ -150,7 +150,7 @@ from xml.etree import cElementTree as etree
 import numpy
 
 try:
-    from . import _tifffile
+    import _tifffile
 except ImportError:
     warnings.warn(
         "failed to import the optional _tifffile C extension module.\n"
@@ -3115,14 +3115,13 @@ def _replace_by(module_function, package=None, warn=False):
         try:
             modname, function = module_function.split('.')
             if package is None:
-                full_name = '.' + modname
+                full_name = modname
             else:
                 full_name = package + '.' + modname
             module = __import__(full_name, fromlist=[modname])
             func, oldfunc = getattr(module, function), func
             globals()['__old_' + func.__name__] = oldfunc
         except Exception:
-            raise
             if warn:
                 warnings.warn("failed to import %s" % module_function)
         return func
