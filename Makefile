@@ -16,8 +16,8 @@ clean:
 	find . -name "*.pyc" -o -name "*.py,cover"| xargs rm -f
 
 test: clean
-	python setup.py install
-	export PYTHONWARNINGS="all"; nosetests $(TEST_ARGS) $(NAME)
+	python setup.py build_ext -i
+	export PYTHONWARNINGS="all"; nosetests $(TEST_ARGS)
 	make clean
 
 release: test

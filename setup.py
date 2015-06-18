@@ -26,7 +26,7 @@ setup(
     author_email='steven.silvester@ieee.org',
     url='https://github.com/blink1073/tifffile',
     include_package_data=True,
-    ext_modules=[Extension('_tifffile',
+    ext_modules=[Extension('tifffile._tifffile',
                            ['tifffile/_tifffile.c'],
                            include_dirs=[numpy.get_include()])],
     requires=['numpy (>=1.8.2)', 'setuptools'],
