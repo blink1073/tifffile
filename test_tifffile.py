@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import sys
 
 try:
     import skimage as si
@@ -33,6 +34,7 @@ def test_imread_uint16_big_endian():
     assert_array_almost_equal(img, expected)
 
 
+@skipif(sys.version.startswith('2.6') or sys.version.startswith('3.2'))
 def test_extension():
     from tifffile.tifffile import decode_lzw
     import types
