@@ -34,9 +34,9 @@ def test_imread_uint16_big_endian():
 
 
 def test_extension():
-    from tifffile.tifffile import decodelzw
+    from tifffile.tifffile import decode_lzw
     import types
-    assert isinstance(decodelzw, types.BuiltinFunctionType), type(decodelzw)
+    assert isinstance(decode_lzw, types.BuiltinFunctionType), type(decode_lzw)
 
 
 class TestSave:
