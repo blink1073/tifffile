@@ -46,6 +46,9 @@ Requirements
 
 Notes
 -----
+This is a mirror of the code at http://www.lfd.uci.edu/~gohlke/code/tifffile.py.html.  For any development concerns, please email Christoph Gohlke at
+``cgohlke at uci.edu``.
+
 The API is not stable yet and might change between revisions.
 
 Tested on little-endian platforms only.
