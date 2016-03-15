@@ -26,11 +26,3 @@ release: test
 	git tag v$(VERSION)
 	git push origin --all
 	git push origin --tags
-
-update: clean
-	rm tifffile/tifffile.py tifffile/_tifffile.c; true
-	wget $(SITE)/tifffile.py
-	wget $(SITE)/tifffile.c
-	patch -R tifffile.py -i replace_by.patch -o tifffile/tifffile.py
-	mv tifffile.c tifffile/_tifffile.c
-	rm tifffile.py
