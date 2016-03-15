@@ -4,6 +4,7 @@
 #   http://yaml-online-parser.appspot.com/
 
 language: python
+sudo: false
 
 python:
 - 2.7
