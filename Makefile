@@ -13,7 +13,7 @@ all: clean
 clean:
 	rm -rf build
 	rm -rf dist
-	find . -name "*.pyc" -o -name "*.py,cover"| xargs rm -f
+	find . -name "*.so" -o -name "*.pyc" | xargs rm -f
 
 test: clean
 	python setup.py build_ext -i
