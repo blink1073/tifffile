@@ -44,6 +44,11 @@ Requirements
 * `Numpy 1.8.2 <http://www.numpy.org>`_
 * `Matplotlib 1.4 <http://www.matplotlib.org>`_ (optional for plotting)
 
+Installation
+------------
+* If using conda, `conda install tifffile -c conda-forge`.
+* Otherwise, `pip install tifffile`.
+
 Notes
 -----
 This is a mirror of the code at http://www.lfd.uci.edu/~gohlke/code/tifffile.py.html.  For any development concerns, please email Christoph Gohlke at
