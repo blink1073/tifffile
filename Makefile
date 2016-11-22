@@ -21,8 +21,12 @@ test: clean
 	make clean
 
 release: test
+	pip install twine
+	rm -rf dist
 	python setup.py register
-	python setup.py sdist --formats=gztar,zip upload
+	python setup.py sdist
+	python setup.py bdist_wheel --universal
 	git tag v$(VERSION)
 	git push origin --all
 	git push origin --tags
+	twine upload dist/*
