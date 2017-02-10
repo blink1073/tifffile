@@ -36,13 +36,13 @@ For command line usage run ``python tifffile.py --help``
 :Organization:
   Laboratory for Fluorescence Dynamics, University of California, Irvine
 
-:Version: 2014.08.24
+:Version: 2017.01.12
 
 Requirements
 ------------
 * `CPython 2.7 or 3.4 <http://www.python.org>`_
-* `Numpy 1.8.2 <http://www.numpy.org>`_
-* `Matplotlib 1.4 <http://www.matplotlib.org>`_ (optional for plotting)
+* `Numpy 1.11 <http://www.numpy.org>`_
+* `Matplotlib 1.5 <http://www.matplotlib.org>`_ (optional for plotting)
 
 Installation
 ------------
