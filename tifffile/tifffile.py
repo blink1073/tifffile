@@ -58,7 +58,7 @@ For command line usage run `python tifffile.py --help`
 :Organization:
   Laboratory for Fluorescence Dynamics, University of California, Irvine
 
-:Version: 2017.01.12
+:Version: 2017.03.17
 
 Requirements
 ------------
@@ -70,6 +70,11 @@ Requirements
 
 Revisions
 ---------
+2017.03.17
+    Write IFDs and tag values on word boundaries.
+    Read ScanImage metadata.
+    Remove is_rgb and is_indexed attributes from TiffFile.
+    Create files used by doctests.
 2017.01.12
     Read Zeiss SEM metadata.
     Read OME-TIFF with invalid references to external files.
@@ -204,6 +209,8 @@ The API is not stable yet and might change between revisions.
 
 Tested on little-endian platforms only.
 
+TIFF trees defined via sub_ifds tags are not supported.
+
 Other Python packages and modules for reading bio-scientific TIFF files:
 
 *  `python-bioformats <https://github.com/CellProfiler/python-bioformats>`_
@@ -232,16 +239,17 @@ References
     http://support.meta.moleculardevices.com/docs/t10243.pdf
 (4) Image File Format Description LSM 5/7 Release 6.0 (ZEN 2010).
     Carl Zeiss MicroImaging GmbH. BioSciences. May 10, 2011
-(5) File Format Description - LSM 5xx Release 2.0.
-    http://ibb.gsf.de/homepage/karsten.rodenacker/IDL/Lsmfile.doc
-(6) The OME-TIFF format.
+(5) The OME-TIFF format.
     http://www.openmicroscopy.org/site/support/file-formats/ome-tiff
-(7) UltraQuant(r) Version 6.0 for Windows Start-Up Guide.
+(6) UltraQuant(r) Version 6.0 for Windows Start-Up Guide.
     http://www.ultralum.com/images%20ultralum/pdf/UQStart%20Up%20Guide.pdf
-(8) Micro-Manager File Formats.
+(7) Micro-Manager File Formats.
     http://www.micro-manager.org/wiki/Micro-Manager_File_Formats
-(9) Tags for TIFF and Related Specifications. Digital Preservation.
+(8) Tags for TIFF and Related Specifications. Digital Preservation.
     http://www.digitalpreservation.gov/formats/content/tiff_tags.shtml
+(9) ScanImage BigTiff Specification - ScanImage 2016.
+    http://scanimage.vidriotechnologies.com/display/SI2016/
+    ScanImage+BigTiff+Specification
 
 Examples
 --------
@@ -255,7 +263,7 @@ Examples
 ...     images = tif.asarray()
 ...     for page in tif:
 ...         for tag in page.tags.values():
-...             t = tag.name, tag.value
+...             _ = tag.name, tag.value
 ...         image = page.asarray()
 
 """
@@ -290,9 +298,9 @@ except ImportError:
 
 try:
     if __package__:
-        from . import _tifffile
+        from . import _tifffile  # noqa
     else:
-        import _tifffile
+        import _tifffile  # noqa
 except ImportError:
     warnings.warn(
         "ImportError: No module named '_tifffile'. "
@@ -300,7 +308,7 @@ except ImportError:
         "Tifffile.c can be obtained at http://www.lfd.uci.edu/~gohlke/")
 
 
-__version__ = '2017.01.12'
+__version__ = '2017.03.17'
 __docformat__ = 'restructuredtext en'
 __all__ = (
     'imsave', 'imread', 'imshow', 'TiffFile', 'TiffWriter', 'TiffSequence',
@@ -963,6 +971,10 @@ class TiffWriter(object):
         for pageindex in range(shape[0] if (compress or tile) else 1):
             # update pointer at ifd_offset
             pos = fh.tell()
+            if pos % 2:
+                # location of IFD must begin on a word boundary
+                fh.write(b'\0')
+                pos += 1
             fh.seek(self._ifd_offset)
             fh.write(pack(offset_format, pos))
             fh.seek(pos)
@@ -978,6 +990,10 @@ class TiffWriter(object):
             for tagindex, tag in enumerate(tags):
                 if tag[2]:
                     pos = fh.tell()
+                    if pos % 2:
+                        # tag value is expected to begin on a word boundary
+                        fh.write(b'\0')
+                        pos += 1
                     fh.seek(tag_offset + tagindex*tag_size + offset_size + 4)
                     fh.write(pack(offset_format, pos))
                     fh.seek(pos)
@@ -1095,6 +1111,10 @@ class TiffWriter(object):
         for _ in range(numpages):
             # update pointer at ifd_offset
             pos = fh.tell()
+            if pos % 2:
+                # location of IFD must begin on a word boundary
+                fh.write(b'\0')
+                pos += 1
             fh.seek(self._ifd_offset)
             fh.write(pack(offset_format, pos))
             fh.seek(pos)
@@ -1113,6 +1133,10 @@ class TiffWriter(object):
             for tagindex, tag in enumerate(self._tags):
                 if tag[2]:
                     pos = fh.tell()
+                    if pos % 2:
+                        # tag value is expected to begin on a word boundary
+                        fh.write(b'\0')
+                        pos += 1
                     fh.seek(tag_offset + tagindex*tag_size + offset_size + 4)
                     fh.write(pack(offset_format, pos))
                     fh.seek(pos)
@@ -1266,13 +1290,12 @@ class TiffFile(object):
         All TIFF pages in file.
     series : list of TiffPageSeries
         TIFF pages with compatible shapes and types.
-    micromanager_metadata: dict
-        Extra MicroManager non-TIFF metadata in the file, if exists.
 
     All attributes are read-only.
 
     Examples
     --------
+    >>> imsave('temp.tif', numpy.random.rand(5, 301, 219))
     >>> with TiffFile('temp.tif') as tif:
     ...     data = tif.asarray()
     ...     data.shape
@@ -1316,7 +1339,7 @@ class TiffFile(object):
             If False, disable processing of OME-XML metadata.
 
         """
-        if is_ome is False:
+        if is_ome is not None and not is_ome:
             self.is_ome = False
 
         self._fh = FileHandle(arg, mode='rb',
@@ -1391,10 +1414,6 @@ class TiffFile(object):
 
         # TiffPage() leaves the file cursor at offset to offset of next IFD
         self._ifd_offset = self._fh.tell()
-
-        if self.is_micromanager:
-            # MicroManager files contain metadata not stored in TIFF tags.
-            self.micromanager_metadata = read_micromanager_metadata(self._fh)
 
         if self.is_lsm:
             self._fix_lsm_strip_offsets()
@@ -1501,7 +1520,6 @@ class TiffFile(object):
         elif len(pages) == 1:
             result = pages[0].asarray(memmap=memmap)
         elif self.is_ome:
-            assert not self.is_indexed, "color mapping disabled for ome-tiff"
             if any(p is None for p in pages):
                 # zero out missing pages
                 firstpage = next(p for p in pages if p)
@@ -1515,7 +1533,7 @@ class TiffFile(object):
                 result = numpy.empty(series.shape, series.dtype).reshape(-1)
             index = 0
 
-            class KeepOpen:
+            class KeepOpen(object):
                 # keep Tiff files open between consecutive pages
                 def __init__(self, parent, close):
                     self.master = parent
@@ -1699,7 +1717,7 @@ class TiffFile(object):
         if 'slices' in ij:
             shape.append(ij['slices'])
             axes.append('Z')
-        if 'channels' in ij and not (self.is_rgb and not
+        if 'channels' in ij and not (page0.is_rgb and not
                                      ij.get('hyperstack', False)):
             shape.append(ij['channels'])
             axes.append('C')
@@ -1810,7 +1828,6 @@ class TiffFile(object):
                             try:
                                 tif = TiffFile(os.path.join(dirname, fname))
                             except (IOError, FileNotFoundError, ValueError):
-                                # TODO: close open file handle
                                 warnings.warn(
                                     "ome-xml: failed to read '%s'" % fname)
                                 break
@@ -1880,10 +1897,10 @@ class TiffFile(object):
             {'<': 'little endian', '>': 'big endian'}[self.byteorder]]
         if self.is_bigtiff:
             result.append("bigtiff")
-        result.extend((attr for attr in (
-            'mdgel', 'mediacy', 'stk', 'lsm', 'vista', 'imagej', 'fluoview',
-            'micromanager', 'nih', 'ome', 'scn', 'tvips', 'fei', 'sem')
-                       if getattr(self, 'is_'+attr)))
+        attrs = ('mdgel', 'mediacy', 'stk', 'lsm', 'vista', 'imagej',
+                 'fluoview', 'micromanager', 'nih', 'ome', 'scn', 'tvips',
+                 'fei', 'sem', 'scanimage')
+        result.extend((attr for attr in attrs if getattr(self, 'is_' + attr)))
         if len(self.pages) > 1:
             result.append("%i pages" % len(self.pages))
         if len(self.series) > 1:
@@ -1903,7 +1920,7 @@ class TiffFile(object):
         for s in series:
             result.append(str(s))
             if pages is None:
-                result.append(s.pages[0].info())
+                result.append(next(p.info() for p in s.pages if p))
 
         if pages is not None:
             if pages == 'all':
@@ -1923,19 +1940,26 @@ class TiffFile(object):
             return None
 
     @lazyattr
+    def micromanager_metadata(self):
+        """Return MicroManager metadata not stored in TIFF tags."""
+        if self.is_micromanager:
+            return read_micromanager_metadata(self._fh)
+
+    @lazyattr
+    def scanimage_metadata(self):
+        """Return ScanImage non-varying frame and ROI metadata as dict."""
+        if self.is_scanimage:
+            try:
+                frame_data, roi_data = read_scanimage_metadata(self._fh)
+                frame_data.update(roi_data)
+                return frame_data
+            except ValueError:
+                pass
+
+    @lazyattr
     def is_bigtiff(self):
         """File has BigTIFF format."""
         return self.offset_size != 4
-
-    @lazyattr
-    def is_rgb(self):
-        """File contains only RGB images."""
-        return self.pages and all(p.is_rgb for p in self.pages)
-
-    @lazyattr
-    def is_indexed(self):
-        """File contains only indexed images."""
-        return self.pages and all(p.is_indexed for p in self.pages)
 
     @lazyattr
     def is_mdgel(self):
@@ -2006,6 +2030,11 @@ class TiffFile(object):
     def is_sem(self):
         """File contains Zeiss SEM metadata."""
         return len(self.pages) and self.pages[0].is_sem
+
+    @lazyattr
+    def is_scanimage(self):
+        """File contains ScanImage metadata."""
+        return len(self.pages) and self.pages[0].is_scanimage
 
 
 class TiffPage(object):
@@ -2097,6 +2126,8 @@ class TiffPage(object):
             warnings.warn("invalid page offset > file size")
             fh.seek(pos)
             raise StopIteration()
+        #if offset % 2:
+        #    warnings.warn("page header does not begin on word boundary")
         self._offset = offset
 
         # read standard tags
@@ -2748,22 +2779,30 @@ class TiffPage(object):
 
     def __str__(self):
         """Return string containing information about page."""
+        attrs = ('stk', 'lsm', 'nih', 'ome', 'imagej', 'micromanager',
+                 'fluoview', 'mdgel', 'mediacy', 'scn', 'scanimage', 'sgi',
+                 'reduced', 'tiled', 'contiguous')
         s = ', '.join(s for s in (
             'x'.join(str(i) for i in self.shape),
             str(numpy.dtype(self.dtype)),
             '%s bit' % str(self.bits_per_sample),
             self.photometric if 'photometric' in self.tags else '',
             self.compression if self.compression else 'raw',
-            '|'.join(t[3:] for t in (
-                'is_stk', 'is_lsm', 'is_nih', 'is_ome', 'is_imagej',
-                'is_micromanager', 'is_fluoview', 'is_mdgel', 'is_mediacy',
-                'is_scn', 'is_sgi', 'is_reduced', 'is_tiled',
-                'is_contiguous') if getattr(self, t))) if s)
+            '|'.join(t for t in attrs if getattr(self, 'is_'+t))) if s)
         return "Page %i: %s" % (self.index, s)
 
-    def info(self):
+    def info(self, verbose=True):
         """Return string with detailed information about page."""
         result = ['\n'.join((str(self), str(self.tags)))]
+        if verbose:
+            for name in ('image_description', 'software', 'artist'):
+                if name not in self.tags:
+                    continue
+                value = self.tags[name].value
+                if len(value) < 60:
+                    continue
+                result.append('%s\n%s' % (
+                    name.upper(), bytes2str(value.replace(b'\r', b'\n'))))
         if self.is_indexed:
             result.append('Color Map: %s, %s' % (self.color_map.shape,
                                                  self.color_map.dtype))
@@ -2977,6 +3016,14 @@ class TiffPage(object):
         """Page contains Zeiss SEM metadata."""
         return 'sem_metadata' in self.tags
 
+    @lazyattr
+    def is_scanimage(self):
+        """Page contains ScanImage metadata."""
+        return (('image_description' in self.tags and
+                 self.image_description.startswith(b'state.config')) or
+                ('software' in self.tags and
+                 self.software.startswith(b'SI.LINE_FORMAT_VERSION')))
+
 
 class TiffTag(object):
     """A TIFF tag structure.
@@ -3027,10 +3074,11 @@ class TiffTag(object):
         """Read tag structure from open file. Advance file cursor."""
         fh = parent.filehandle
         byteorder = parent.byteorder
+        offset_size = parent.offset_size
         self._offset = fh.tell()
-        self.value_offset = self._offset + parent.offset_size + 4
+        self.value_offset = self._offset + offset_size + 4
 
-        fmt, size = {4: ('HHI4s', 12), 8: ('HHQ8s', 20)}[parent.offset_size]
+        fmt, size = {4: ('HHI4s', 12), 8: ('HHQ8s', 20)}[offset_size]
         data = fh.read(size)
         code, dtype = struct.unpack(byteorder + fmt[:2], data[:4])
         count, value = struct.unpack(byteorder + fmt[2:], data[4:])
@@ -3054,14 +3102,14 @@ class TiffTag(object):
 
         fmt = '%s%i%s' % (byteorder, count*int(dtype[0]), dtype[1])
         size = struct.calcsize(fmt)
-        if size > parent.offset_size or code in CUSTOM_TAGS:
+        if size > offset_size or code in CUSTOM_TAGS:
             pos = fh.tell()
-            tof = {4: 'I', 8: 'Q'}[parent.offset_size]
+            tof = {4: 'I', 8: 'Q'}[offset_size]
             self.value_offset = offset = struct.unpack(byteorder+tof, value)[0]
-            if offset < 0 or offset > parent.filehandle.size:
-                raise TiffTag.Error("corrupt file - invalid tag value offset")
-            elif offset < 4:
-                raise TiffTag.Error("corrupt value offset for tag %i" % code)
+            if offset < 8 or offset > fh.size - size:
+                raise TiffTag.Error("invalid tag value offset")
+            #if offset % 2:
+            #    warnings.warn("tag value does not begin on word boundary")
             fh.seek(offset)
             if code in CUSTOM_TAGS:
                 readfunc = CUSTOM_TAGS[code][1]
@@ -3173,12 +3221,11 @@ class TiffPageSeries(object):
             return
 
         rgbonly = False
-        colormapped = self.pages[0].is_indexed
         pos = 0
         for page in self.pages:
             if page is None:
                 return
-            if not page._is_memmappable(rgbonly, colormapped):
+            if not page._is_memmappable(rgbonly, page.is_indexed):
                 return
             if not pos:
                 pos = page.is_contiguous[0] + page.is_contiguous[1]
@@ -3233,12 +3280,16 @@ class TiffSequence(object):
 
     Examples
     --------
-    >>> tifs = TiffSequence("test.oif.files/*.tif")
-    >>> tifs.shape, tifs.axes
-    ((2, 100), 'CT')
+    >>> imsave('temp_C001T001.tif', numpy.random.rand(64, 64))
+    >>> imsave('temp_C001T002.tif', numpy.random.rand(64, 64))
+    >>> tifs = TiffSequence("temp_C001*.tif")
+    >>> tifs.shape
+    (1, 2)
+    >>> tifs.axes
+    'CT'
     >>> data = tifs.asarray()
     >>> data.shape
-    (2, 100, 256, 256)
+    (1, 2, 64, 64)
 
     """
     _patterns = {
@@ -4061,7 +4112,7 @@ def read_sem_metadata(fh, byteorder, dtype, count):
                 if number != v:
                     value = number
                     unit = u
-            except:
+            except Exception:
                 number = astype(value, (int, float))
                 if number != value:
                     value = number
@@ -4085,6 +4136,34 @@ def read_nih_image_header(fh, byteorder, dtype, count):
     a.xunit = a.xunit[:a._xunit_len]
     a.um = a.um[:a._um_len]
     return a
+
+
+def read_scanimage_metadata(fh):
+    """Read ScanImage BigTIFF v3 static and ROI metadata from open file.
+
+    Return non-varying frame data as dict and ROI group data as JSON.
+
+    The settings can be used to read image data and metadata without parsing
+    the TIFF file.
+
+    Raise ValueError if file does not contain valid ScanImage v3 metadata.
+
+    """
+    fh.seek(0)
+    try:
+        byteorder, version = struct.unpack('<2sH', fh.read(4))
+        if byteorder != b'II' or version != 43:
+            raise Exception
+        fh.seek(16)
+        magic, version, size0, size1 = struct.unpack('<IIII', fh.read(16))
+        if magic != 117637889 or version != 3:
+            raise Exception
+    except Exception:
+        raise ValueError("not a ScanImage BigTIFF v3 file")
+
+    frame_data = matlabstr2py(bytes2str(fh.read(size0)[:-1]))
+    roi_data = read_json(fh, '<', None, size1)
+    return frame_data, roi_data
 
 
 def read_micromanager_metadata(fh):
@@ -4887,6 +4966,146 @@ def stack_pages(pages, memmap=False, tempdir=None, *args, **kwargs):
     return data
 
 
+def matlabstr2py(s):
+    """Return Python object from Matlab string representation.
+
+    Return str, bool, int, float, list (Matlab arrays or cells), or
+    dict (Matlab structures) types.
+
+    Use to access ScanImage metadata.
+
+    >>> matlabstr2py('1')
+    1
+    >>> matlabstr2py("['x y z' true false; 1 2.0 -3e4; NaN Inf @class]")
+    [['x y z', True, False], [1, 2.0, -30000.0], [nan, inf, '@class']]
+    >>> d = matlabstr2py("SI.hChannels.channelType = {'stripe' 'stripe'}\\n"
+    ...                  "SI.hChannels.channelsActive = 2")
+    >>> d['SI.hChannels.channelType']
+    ['stripe', 'stripe']
+
+    """
+    # TODO: handle invalid input
+    # TODO: review unboxing of multidimensional arrays
+
+    def lex(s):
+        # return sequence of tokens from matlab string representation
+        tokens = ['[']
+        while True:
+            t, i = next_token(s)
+            if t is None:
+                break
+            if t == ';':
+                tokens.extend((']', '['))
+            elif t == '[':
+                tokens.extend(('[', '['))
+            elif t == ']':
+                tokens.extend((']', ']'))
+            else:
+                tokens.append(t)
+            s = s[i:]
+        tokens.append(']')
+        return tokens
+
+    def next_token(s):
+        # return next token in matlab string
+        length = len(s)
+        if length == 0:
+            return None, 0
+        i = 0
+        while i < length and s[i] == ' ':
+            i += 1
+        if i == length:
+            return None, i
+        if s[i] in '{[;]}':
+            return s[i], i + 1
+        if s[i] == "'":
+            j = i + 1
+            while j < length and s[j] != "'":
+                j += 1
+            return s[i: j+1], j + 1
+        j = i
+        while j < length and not s[j] in ' {[;]}':
+            j += 1
+        return s[i:j], j
+
+    def value(s, fail=False):
+        # return Python value of token
+        s = s.strip()
+        if not s:
+            return s
+        if len(s) == 1:
+            try:
+                return int(s)
+            except Exception:
+                if fail:
+                    raise ValueError()
+                return s
+        if s[0] == "'":
+            if fail and s[-1] != "'" or "'" in s[1:-1]:
+                raise ValueError()
+            return s[1:-1]
+        if fail and any(i in s for i in " ';[]{}"):
+            raise ValueError()
+        if s[0] == '@':
+            return s
+        if s == 'true':
+            return True
+        if s == 'false':
+            return False
+        if '.' in s or 'e' in s:
+            return float(s)
+        try:
+            return int(s)
+        except Exception:
+            pass
+        try:
+            return float(s)  # nan, inf
+        except Exception:
+            if fail:
+                raise ValueError()
+        return s
+
+    def parse(s):
+        # return Python value from string representation of Matlab value
+        s = s.strip()
+        try:
+            return value(s, fail=True)
+        except ValueError:
+            pass
+        result = add2 = []
+        levels = [add2]
+        for t in lex(s):
+            if t in '[{':
+                add2 = []
+                levels.append(add2)
+            elif t in ']}':
+                x = levels.pop()
+                if len(x) == 1 and isinstance(x[0], list):
+                    x = x[0]
+                add2 = levels[-1]
+                add2.append(x)
+            else:
+                add2.append(value(t))
+        if len(result) == 1 and isinstance(result[0], list):
+            result = result[0]
+        return result
+
+    if '\r' in s or '\n' in s:
+        # structure
+        d = {}
+        for line in s.splitlines():
+            if not line.strip():
+                continue
+            k, v = line.split('=', 1)
+            k = k.strip()
+            if any(c in k for c in " ';[]{}"):
+                continue
+            d[k] = parse(v.strip())
+        return d
+    else:
+        return parse(s)
+
+
 def stripnull(string, null=b'\x00'):
     """Return string truncated at first null character.
 
@@ -5170,8 +5389,8 @@ TIFF_DATA_TYPES = {
     11: '1f',  # FLOAT Single precision (4-byte) IEEE format.
     12: '1d',  # DOUBLE Double precision (8-byte) IEEE format.
     13: '1I',  # IFD unsigned 4 byte IFD offset.
-    #14: '',   # UNICODE
-    #15: '',   # COMPLEX
+    # 14: '',   # UNICODE
+    # 15: '',   # COMPLEX
     16: '1Q',  # LONG8 unsigned 8 byte integer (BigTiff)
     17: '1q',  # SLONG8 signed 8 byte integer (BigTiff)
     18: '1Q',  # IFD8 unsigned 8 byte IFD offset (BigTiff)
@@ -5181,8 +5400,8 @@ TIFF_SAMPLE_FORMATS = {
     1: 'uint',
     2: 'int',
     3: 'float',
-    #4: 'void',
-    #5: 'complex_int',
+    # 4: 'void',
+    # 5: 'complex_int',
     6: 'complex',
 }
 
@@ -5418,7 +5637,7 @@ UIC_TAGS = {
     63: ('blue_autoscale_hi_info', Fraction),
     64: ('blue_min_scale_info', int),
     65: ('blue_max_scale_info', int),
-    #66: ('overlay_plane_color', read_uic_overlay_plane_color),
+    # 66: ('overlay_plane_color', read_uic_overlay_plane_color),
 }
 
 # Olympus FluoView
@@ -6045,9 +6264,7 @@ def imshow(data, title=None, vmin=0, vmax=None, cmap=None,
         Arguments for matplotlib.pyplot.imshow.
 
     """
-    #if photometric not in ('miniswhite', 'minisblack', 'rgb', 'palette'):
-    #    raise ValueError("Can not handle %s photometrics" % photometric)
-    # TODO: handle photometric == 'separated' (CMYK)
+    # TODO: show photometric == 'separated' (CMYK) as RGB
     isrgb = photometric in ('rgb', 'palette')
 
     data = data.squeeze()
@@ -6436,3 +6653,4 @@ else:
 
 if __name__ == "__main__":
     sys.exit(main())
+
