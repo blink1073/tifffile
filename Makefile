@@ -22,13 +22,13 @@ test: clean
 
 release: test
 	pip install twine
+	git tag v$(VERSION)
+	git push origin --all
+	git push origin --tags
 	rm -rf dist
 	python setup.py register
 	python setup.py sdist
 	python setup.py bdist_wheel --universal
-	git tag v$(VERSION)
-	git push origin --all
-	git push origin --tags
 	twine upload dist/*
 	printf '\nUpgrade tifffile-feedstock with release and sha256 sum:'
 	shasum -a 256 dist/*.tar.gz
