@@ -51,8 +51,8 @@ try:
                   ['tifffile/_tifffile.c'],
                   include_dirs=[numpy.get_include()])
     ]
-except Exception:
+except ImportError:
     warn('Cannot build the extension module without numpy')
 
 
-setup(setup_args)
+setup(**setup_args)
