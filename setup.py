@@ -28,7 +28,7 @@ setup_args = dict(
     include_package_data=True,
     install_requires=[
         'numpy>=1.8.2',
-        'enum;python_version<"3.0"',
+        'enum34;python_version<"3.0"',
         'futures; python_version == "2.7"'
     ],
     license="BSD",
