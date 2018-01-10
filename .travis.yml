@@ -8,12 +8,10 @@ sudo: false
 
 python:
 - 2.7
-- 3.4
+- 3.5
 
 before_install:
-    - export WHEELHOUSE="--no-index --find-links=http://wheels.scikit-image.org/"
-    - pip uninstall -y numpy
-    - pip install $WHEELHOUSE numpy
+    - pip install numpy
     - pip install -U pip
 
 script:
