@@ -26,7 +26,7 @@ setup_args = dict(
     author_email='steven.silvester@ieee.org',
     url='https://github.com/blink1073/tifffile',
     include_package_data=True,
-    requires=['numpy (>=1.8.2)', 'setuptools', 'enum;python_version<"3.0"'],
+    install_requires=['numpy>=1.8.2', 'enum;python_version<"3.0"'],
     license="BSD",
     zip_safe=False,
     packages=find_packages(),
