@@ -1,8 +1,9 @@
 include HISTORY.rst
 include LICENSE
 include README.rst
-include *.py
-include *.c
+recursive-include *.py
+recursive-include *.c
+
 
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
