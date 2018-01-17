@@ -1,8 +1,7 @@
 include HISTORY.rst
 include LICENSE
 include README.rst
-recursive-include *.py
-recursive-include *.c
+include tifffile/_tifffile.c
 
 
 recursive-exclude * __pycache__
