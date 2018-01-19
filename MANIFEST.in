@@ -1,8 +1,8 @@
 include HISTORY.rst
 include LICENSE
 include README.rst
-include *.py
-include *.c
+include tifffile/_tifffile.c
+
 
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]

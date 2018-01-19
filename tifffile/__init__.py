@@ -1,6 +1,6 @@
 from .tifffile import imsave, imread, imshow, TiffFile, TiffWriter, TiffSequence, FileHandle, lazyattr, natural_sorted, decode_lzw, stripnull
 
-__version__ = '0.11.1'
+__version__ = '0.13.4'
 __all__ = (
     'imsave', 'imread', 'imshow', 'TiffFile', 'TiffWriter', 'TiffSequence',
     # utility functions used in oiffile and czifile

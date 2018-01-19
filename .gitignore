@@ -1,3 +1,5 @@
+.cache
+
 *.py[cod]
 
 # C extensions
@@ -45,3 +47,5 @@ docs/_build
 MANIFEST
 
 *.tif
+
+.DS_Store

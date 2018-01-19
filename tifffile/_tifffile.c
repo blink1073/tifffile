@@ -1,3 +1,5 @@
+
+
 /* tifffile.c
 
 A Python C extension module for decoding PackBits and LZW encoded TIFF data.
@@ -10,12 +12,12 @@ Refer to the tifffile.py module for documentation and tests.
 :Organization:
   Laboratory for Fluorescence Dynamics, University of California, Irvine
 
-:Version: 2017.01.10
+:Version: 2017.10.05
 
 Requirements
 ------------
-* `CPython 2.7 or 3.5 <http://www.python.org>`_
-* `Numpy 1.11 <http://www.numpy.org>`_
+* `CPython 2.7 or 3.6 <http://www.python.org>`_
+* `Numpy 1.13 <http://www.numpy.org>`_
 * A Python distutils compatible C compiler  (build)
 * `stdint.h <https://github.com/chemeris/msinttypes/>`_ for msvc9 compiler
 
@@ -63,7 +65,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#define _VERSION_ "2017.01.10"
+#define _VERSION_ "2017.10.05"
 
 #define WIN32_LEAN_AND_MEAN
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -638,13 +640,21 @@ py_decodepackbits(PyObject* obj, PyObject* args)
 char py_decodelzw_doc[] = "Return TIFF LZW decoded string.";
 
 #define GET_NEXT_CODE \
-    code = *((uint32_t*)((void*)(encoded + (bitcount >> 3)))); \
-    if (little_endian) \
-        code = SWAP4BYTES(code); \
-    code <<= (uint32_t)(bitcount % 8); \
-    code &= mask; \
-    code >>= shr; \
-    bitcount += bitw; \
+    {  \
+        const uint8_t* bytes = (uint8_t*)((void*)(encoded + (bitcount>>3)));  \
+        code = (uint32_t) bytes[0];  \
+        code <<= 8;  \
+        code |= (uint32_t) bytes[1];  \
+        code <<= 8;  \
+        if ((bitcount + 24) <= encoded_size)  \
+            code |= (uint32_t) bytes[2];  \
+        code <<= 8;  \
+        code <<= (uint32_t)(bitcount % 8);  \
+        code &= mask;  \
+        code >>= shr;  \
+        bitcount += bitw;  \
+    }
+
 
 static PyObject*
 py_decodelzw(PyObject* obj, PyObject* args)
@@ -681,9 +691,14 @@ py_decodelzw(PyObject* obj, PyObject* args)
     */
     encoded_size *= 8;  /* bits */
 
+    if (*encoded == 0) {
+        /* TODO: old style LZW codes are written in reversed bit order */
+        PyErr_Format(PyExc_ValueError, "can not decode old-style LZW");
+        goto _fail;
+    }
+
     if ((*encoded != -128) || ((*(encoded+1) & 128))) {
-        PyErr_Format(PyExc_ValueError,
-            "strip must begin with CLEAR code");
+        PyErr_Format(PyExc_ValueError, "strip must begin with CLEAR code");
         goto _fail;
     }
     little_endian = (*(uint16_t*)encoded) & 128;
@@ -763,8 +778,10 @@ py_decodelzw(PyObject* obj, PyObject* args)
         buffer_size = buffersize;
 
     if (code != 257) {
+        /*
         PyErr_WarnEx(
             NULL, "py_decodelzw encountered unexpected end of stream", 1);
+        */
     }
 
     /* allocate output and buffer string */
@@ -997,3 +1014,4 @@ init_tifffile(void)
     return module;
 #endif
 }
+

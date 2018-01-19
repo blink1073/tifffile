@@ -3,8 +3,8 @@
 
 from setuptools import setup, find_packages
 from distutils.core import Extension
+from distutils.log import warn
 
-import numpy
 import re
 
 
@@ -17,7 +17,7 @@ with open('tifffile/__init__.py') as f:
 version = re.search("__version__ = '(.*?)'", text).groups()[0]
 
 
-setup(
+setup_args = dict(
     name='tifffile',
     version=version,
     description='Read and write image data from and to TIFF files.',
@@ -26,10 +26,11 @@ setup(
     author_email='steven.silvester@ieee.org',
     url='https://github.com/blink1073/tifffile',
     include_package_data=True,
-    ext_modules=[Extension('tifffile._tifffile',
-                           ['tifffile/_tifffile.c'],
-                           include_dirs=[numpy.get_include()])],
-    requires=['numpy (>=1.8.2)', 'setuptools'],
+    install_requires=[
+        'numpy>=1.8.2',
+        'enum34;python_version<"3.0"',
+        'futures; python_version == "2.7"'
+    ],
     license="BSD",
     zip_safe=False,
     packages=find_packages(),
@@ -46,3 +47,16 @@ setup(
         'Programming Language :: Python :: 3.4',
     ],
 )
+
+try:
+    import numpy
+    setup_args['ext_modules'] = [
+        Extension('tifffile._tifffile',
+                  ['tifffile/_tifffile.c'],
+                  include_dirs=[numpy.get_include()])
+    ]
+except ImportError:
+    warn('Cannot build the extension module without numpy')
+
+
+setup(**setup_args)
