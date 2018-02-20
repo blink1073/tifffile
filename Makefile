@@ -24,8 +24,8 @@ release: test
 	pip install twine
 	git tag v$(VERSION); true
 	git commit -a -m "Release $(VERSION)"; true
-	git push origin --all
-	git push origin --tags
+	git push origin --all; true
+	git push origin --tags; true
 	rm -rf dist
 	python setup.py register
 	python setup.py sdist
