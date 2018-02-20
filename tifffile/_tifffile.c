@@ -7,16 +7,16 @@ A Python C extension module for decoding PackBits and LZW encoded TIFF data.
 Refer to the tifffile.py module for documentation and tests.
 
 :Author:
-  `Christoph Gohlke <http://www.lfd.uci.edu/~gohlke/>`_
+  `Christoph Gohlke <https://www.lfd.uci.edu/~gohlke/>`_
 
 :Organization:
   Laboratory for Fluorescence Dynamics, University of California, Irvine
 
-:Version: 2017.10.05
+:Version: 2018.02.10
 
 Requirements
 ------------
-* `CPython 2.7 or 3.6 <http://www.python.org>`_
+* `CPython 2.7 or 3.6 <https://www.python.org>`_
 * `Numpy 1.13 <http://www.numpy.org>`_
 * A Python distutils compatible C compiler  (build)
 * `stdint.h <https://github.com/chemeris/msinttypes/>`_ for msvc9 compiler
@@ -35,8 +35,8 @@ Use this Python distutils setup script to build the extension module::
 
 License
 -------
-Copyright (c) 2008-2017, Christoph Gohlke
-Copyright (c) 2008-2017, The Regents of the University of California
+Copyright (c) 2008-2018, Christoph Gohlke
+Copyright (c) 2008-2018, The Regents of the University of California
 Produced at the Laboratory for Fluorescence Dynamics
 All rights reserved.
 
@@ -65,7 +65,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#define _VERSION_ "2017.10.05"
+#define _VERSION_ "2018.02.10"
 
 #define WIN32_LEAN_AND_MEAN
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -279,8 +279,8 @@ int unpackbits(
             if (shr < itemsize) {
                 value.b[3] = value.b[1];
                 value.b[2] = value.b[0];
-                value.b[1] = data[j++];
-                value.b[0] = data[j++];
+                value.b[1] = j < size ? data[j++] : 0;
+                value.b[0] = j < size ? data[j++] : 0;
                 mask.i <<= 16 - itemsize;
                 shr += 16;
             } else {
@@ -318,10 +318,10 @@ int unpackbits(
                 value.b[6] = value.b[2];
                 value.b[5] = value.b[1];
                 value.b[4] = value.b[0];
-                value.b[3] = data[j++];
-                value.b[2] = data[j++];
-                value.b[1] = data[j++];
-                value.b[0] = data[j++];
+                value.b[3] = j < size ? data[j++] : 0;
+                value.b[2] = j < size ? data[j++] : 0;
+                value.b[1] = j < size ? data[j++] : 0;
+                value.b[0] = j < size ? data[j++] : 0;
                 mask.i <<= 32 - itemsize;
                 shr += 32;
             } else {
@@ -494,6 +494,9 @@ py_unpackints(PyObject* obj, PyObject* args, PyObject* kwds)
     }
     decoded = (char*)PyArray_DATA(result);
 
+    encoded_len = (ssize_t)(((uint64_t)runlen * (uint64_t)itemsize +
+                                                    (uint64_t)skipbits) / 8);
+
     for (i = 0; i < decoded_len; i+=runlen) {
         if (NO_ERROR != unpackbits((unsigned char*) encoded,
                                    (ssize_t) encoded_len,
@@ -503,8 +506,7 @@ py_unpackints(PyObject* obj, PyObject* args, PyObject* kwds)
                 PyErr_Format(PyExc_ValueError, "unpackbits() failed");
                 goto _fail;
             }
-        encoded += (Py_ssize_t)(((uint64_t)runlen * (uint64_t)itemsize +
-                                                      (uint64_t)skipbits) / 8);
+        encoded += encoded_len;
         decoded += runlen * storagesize;
     }
 
@@ -914,7 +916,7 @@ char module_doc[] =
     "A Python C extension module for decoding PackBits and LZW encoded "
     "TIFF data.\n\n"
     "Refer to the tifffile.py module for documentation and tests.\n\n"
-    "Authors:\n  Christoph Gohlke <http://www.lfd.uci.edu/~gohlke/>\n"
+    "Authors:\n  Christoph Gohlke <https://www.lfd.uci.edu/~gohlke/>\n"
     "  Laboratory for Fluorescence Dynamics, University of California, Irvine."
     "\n\nVersion: %s\n";
 
