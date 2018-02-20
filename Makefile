@@ -23,7 +23,7 @@ test: clean
 release: test
 	pip install twine
 	git tag v$(VERSION); true
-	git commit -a -m "Release $(VERSION)"
+	git commit -a -m "Release $(VERSION)"; true
 	git push origin --all
 	git push origin --tags
 	rm -rf dist
