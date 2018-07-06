@@ -33,7 +33,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-"""Read image and meta data from (bio) TIFF® files. Save numpy arrays as TIFF.
+"""Read image and meta data from (bio) TIFF(R) files. Save numpy arrays as TIFF.
 
 Image and metadata can be read from TIFF, BigTIFF, OME-TIFF, STK, LSM, NIH,
 SGI, ImageJ, MicroManager, FluoView, ScanImage, SEQ, GEL, and GeoTIFF files.
