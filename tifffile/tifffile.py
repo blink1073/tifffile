@@ -46,7 +46,7 @@ Specifically, reading slices of image data, image trees defined via SubIFDs,
 CCITT and OJPEG compression, chroma subsampling without JPEG compression,
 or IPTC and XMP metadata are not implemented.
 
-TIFF®, the tagged Image File Format, is a trademark and under control of
+TIFF(R), the tagged Image File Format, is a trademark and under control of
 Adobe Systems Incorporated. BigTIFF allows for files greater than 4 GB.
 STK, LSM, FluoView, SGI, SEQ, GEL, and OME-TIFF, are custom extensions
 defined by Molecular Devices (Universal Imaging Corporation), Carl Zeiss
