@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from setuptools import setup, find_packages
-from distutils.core import Extension
-from distutils.log import warn
-
 import re
 
+from setuptools import find_packages, setup
+from setuptools.command.build_ext import build_ext as _build_ext
+from setuptools.extension import Extension
 
 with open('README.rst') as f:
     readme = f.read()
@@ -17,7 +16,22 @@ with open('tifffile/__init__.py') as f:
 version = re.search("__version__ = '(.*?)'", text).groups()[0]
 
 
-setup_args = dict(
+# See https://stackoverflow.com/a/21621689/3622042
+class build_ext(_build_ext):
+    def finalize_options(self):
+        _build_ext.finalize_options(self)
+
+        # Prevent numpy from thinking it is still in its setup process:
+        __builtins__.__NUMPY_SETUP__ = False
+
+        import numpy
+        self.include_dirs.append(numpy.get_include())
+
+
+ext_modules = [Extension('tifffile._tifffile', ['tifffile/_tifffile.c'])]
+
+
+setup(
     name='tifffile',
     version=version,
     description='Read and write image data from and to TIFF files.',
@@ -26,6 +40,9 @@ setup_args = dict(
     author_email='steven.silvester@ieee.org',
     url='https://github.com/blink1073/tifffile',
     include_package_data=True,
+    setup_requires=[
+        'numpy>=1.8.2'
+    ],
     install_requires=[
         'numpy>=1.8.2',
         'pathlib;python_version<"3.0"',
@@ -35,6 +52,10 @@ setup_args = dict(
     license="BSD",
     zip_safe=False,
     packages=find_packages(),
+    cmdclass={
+        'build_ext': build_ext
+    },
+    ext_modules=ext_modules,
     keywords='tifffile',
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -48,16 +69,3 @@ setup_args = dict(
         'Programming Language :: Python :: 3.4',
     ],
 )
-
-try:
-    import numpy
-    setup_args['ext_modules'] = [
-        Extension('tifffile._tifffile',
-                  ['tifffile/_tifffile.c'],
-                  include_dirs=[numpy.get_include()])
-    ]
-except ImportError:
-    warn('Cannot build the extension module without numpy')
-
-
-setup(**setup_args)
